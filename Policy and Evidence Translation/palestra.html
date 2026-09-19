@@ -1,0 +1,806 @@
+<title>Policy and Evidence Translation</title>
+<style>
+  :root {
+    --paper:        #e9e8e6;
+    --paper-raised: #ffffff;
+    --ink:          #1c1c1b;
+    --ink-soft:     #4b4a48;
+    --ink-faint:    #7c7a77;
+    --rule:         rgba(20,18,17,0.13);
+    --accent:       #8b0000;
+    --accent-deep:  #3f0008;
+    --accent-mid:   #a50f15;
+    --accent-soft:  #fcbba1;
+    --accent-wash:  #fee5d9;
+    --panel-bg:     #710009;
+    --panel-ink:    #f3e6e3;
+    --act-bg:       #2b2b2a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:        #1a1a19;
+      --paper-raised: #242423;
+      --ink:          #efeeec;
+      --ink-soft:     #c6c4c1;
+      --ink-faint:    #8f8d8a;
+      --rule:         rgba(239,238,236,0.14);
+      --accent:       #e0574f;
+      --accent-deep:  #fee5d9;
+      --accent-mid:   #fb6a4a;
+      --accent-soft:  #a50f15;
+      --accent-wash:  #3f0008;
+      --panel-bg:     #58000a;
+      --panel-ink:    #f3e6e3;
+      --act-bg:       #2b2b2a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:        #1a1a19;
+    --paper-raised: #242423;
+    --ink:          #efeeec;
+    --ink-soft:     #c6c4c1;
+    --ink-faint:    #8f8d8a;
+    --rule:         rgba(239,238,236,0.14);
+    --accent:       #e0574f;
+    --accent-deep:  #fee5d9;
+    --accent-mid:   #fb6a4a;
+    --accent-soft:  #a50f15;
+    --accent-wash:  #3f0008;
+    --panel-bg:     #58000a;
+    --panel-ink:    #f3e6e3;
+    --act-bg:       #2b2b2a;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 64px);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  .serif {
+    font-family: "Iowan Old Style", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  }
+  .num {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8vh 7vw;
+    position: relative;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse 120% 80% at 15% 0%, var(--accent-wash) 0%, transparent 55%),
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 64px);
+  }
+  .hero h1 {
+    font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 5.9vw, 5rem);
+    line-height: 1.08;
+    margin: 0 0 2rem 0;
+    max-width: 16ch;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    max-width: 50ch;
+    font-size: 1.35rem;
+    color: var(--ink-soft);
+  }
+  .hero-meta {
+    margin-top: 3.4rem;
+    display: flex;
+    gap: 2.4rem;
+    flex-wrap: wrap;
+    font-size: 1.25rem;
+    color: var(--ink-faint);
+  }
+  .hero-meta strong { color: var(--ink-soft); font-weight: 600; font-size: 1.4rem; }
+  .scroll-cue {
+    position: absolute;
+    bottom: 5vh;
+    left: 7vw;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .scroll-cue::after {
+    content: "";
+    width: 1px;
+    height: 34px;
+    background: linear-gradient(var(--accent), transparent);
+    animation: pulse-line 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-line {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+  }
+
+  /* ---------- Act divider ---------- */
+  .act {
+    position: relative;
+    padding: 16vh 8vw 7.5vh;
+    background-color: var(--act-bg);
+    background-image:
+      repeating-linear-gradient(to right, rgba(243,230,227,0.06) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, rgba(243,230,227,0.06) 0 1px, transparent 1px 64px);
+    color: var(--panel-ink);
+  }
+  .act-num {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 1rem;
+  }
+  .act h2 {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.2rem, 4.4vw, 3.7rem);
+    max-width: 22ch;
+    text-wrap: balance;
+    margin: 0 0 1.4rem 0;
+  }
+  .act p {
+    max-width: 62ch;
+    color: #cbb6b2;
+    font-size: 1.25rem;
+  }
+
+  /* ---------- Scrolly section ---------- */
+  .scrolly {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .steps {
+    width: 42%;
+    min-width: 320px;
+    padding: 8vh 6.5vw 8vh 8.5vw;
+  }
+  .step {
+    min-height: 78vh;
+    display: flex;
+    align-items: center;
+    padding: 5.5vh 0;
+    opacity: 0.32;
+    transition: opacity 0.35s ease;
+  }
+  .step.is-active { opacity: 1; }
+  .step-inner { max-width: 44ch; }
+  .step-index {
+    display: inline-block;
+    font-size: 0.92rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+  }
+  .step h3 {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-weight: 400;
+    font-size: 1.85rem;
+    margin: 0 0 0.95rem 0;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .step p { margin: 0 0 1.05rem 0; color: var(--ink-soft); font-size: 1.25rem; }
+  .step p:last-child { margin-bottom: 0; }
+  .step .callout {
+    margin-top: 1.1rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--paper-raised);
+    border-left: 3px solid var(--accent);
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+  .step .eq {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 1.4rem;
+    text-align: center;
+    white-space: nowrap;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    padding: 1.15rem 1.1rem;
+    border-radius: 3px;
+    margin-top: 1rem;
+    overflow-x: auto;
+    color: var(--accent-deep);
+  }
+  .step .stat {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-size: 3.15rem;
+    color: var(--accent);
+    line-height: 1;
+    margin: 0.65rem 0 0.4rem;
+  }
+  .step .stat-label {
+    font-size: 0.96rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .visual {
+    width: 58%;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5vh 4vw;
+    background-color: var(--panel-bg);
+    background-image: linear-gradient(rgba(0,0,0,0.42), rgba(0,0,0,0.42)), url("img/panel-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: multiply, normal;
+  }
+  .visual-frame {
+    position: relative;
+    width: 100%;
+    max-width: 970px;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+  .frame.is-visible { opacity: 1; transform: translateY(0); position: relative; }
+  .frame img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    background: #fff;
+  }
+  .frame figcaption {
+    font-size: 0.96rem;
+    color: #c9b3ae;
+    max-width: 52ch;
+  }
+  .frame figcaption .num { color: var(--accent-soft); }
+
+  /* Institutional / diagram frames (no chart image) */
+  .diagram {
+    color: var(--panel-ink);
+  }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .timeline .tl-item {
+    display: grid;
+    grid-template-columns: 104px 1fr;
+    gap: 1.55rem;
+    padding: 1.4rem 0;
+    border-top: 1px solid rgba(243,230,227,0.14);
+  }
+  .timeline .tl-item:first-child { border-top: none; }
+  .tl-item .tl-year {
+    font-family: "SF Mono", ui-monospace, monospace;
+    color: var(--accent-soft);
+    font-size: 1.08rem;
+    padding-top: 0.15rem;
+  }
+  .tl-item .tl-label { font-size: 1.2rem; color: var(--panel-ink); }
+  .tl-item .tl-label small { display: block; color: #b89f9a; font-size: 0.98rem; margin-top: 0.2rem; }
+
+  .chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .chain .node {
+    padding: 1.15rem 1.6rem;
+    border: 1px solid rgba(243,230,227,0.22);
+    border-radius: 3px;
+    font-size: 1.15rem;
+    color: var(--panel-ink);
+  }
+  .chain .node strong { display: block; color: var(--accent-soft); font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .chain .arrow { color: var(--accent-soft); font-size: 1.45rem; }
+
+  .quote-big {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.35;
+    color: var(--panel-ink);
+    max-width: 20ch;
+  }
+  .quote-big .accent, .eq-display .accent { color: var(--accent-soft); }
+  .quote-src { margin-top: 1.4rem; font-size: 0.98rem; color: #b89f9a; }
+
+  .eq-display {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: clamp(1.5rem, 2.3vw, 2rem);
+    color: var(--panel-ink);
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .deflist { display: flex; flex-direction: column; gap: 1.1rem; }
+  .deflist .d { border-top: 1px solid rgba(243,230,227,0.14); padding-top: 1.1rem; }
+  .deflist .d:first-child { border-top: none; padding-top: 0; }
+  .deflist dt { font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-soft); }
+  .deflist dd { margin: 0.3rem 0 0; color: var(--panel-ink); font-size: 1.18rem; }
+
+  .comm-list { display: flex; flex-direction: column; gap: 0; }
+  .comm-list .c-item {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: 1.15rem 0; border-top: 1px solid rgba(243,230,227,0.14);
+    color: var(--panel-ink); font-size: 1.18rem;
+  }
+  .comm-list .c-item:first-child { border-top: none; }
+  .comm-list .c-item span:last-child { color: #b89f9a; font-size: 0.98rem; white-space: nowrap; }
+
+  /* placeholder frame for pending case content */
+  .placeholder {
+    border: 1px dashed rgba(243,230,227,0.35);
+    border-radius: 4px;
+    padding: 2rem;
+  }
+  .placeholder .tag {
+    display: inline-block;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    border: 1px solid var(--accent-soft);
+    border-radius: 3px;
+    padding: 0.25rem 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+
+  /* progress rail */
+  .rail {
+    position: fixed;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .rail .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--rule);
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+  .rail .dot.is-active { background: var(--accent); transform: scale(1.5); }
+
+  /* closing */
+  .closing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10vh 7vw;
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 64px);
+  }
+  .closing .thanks {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(3.6rem, 10vw, 7.5rem);
+    color: var(--ink);
+    margin: 0 0 1.4rem;
+  }
+  .closing .thanks-sub {
+    font-size: 1.3rem;
+    color: var(--ink-faint);
+    margin: 0 0 2.6rem;
+  }
+  .closing .qr {
+    width: 315px;
+    height: 315px;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.14);
+    margin-bottom: 3rem;
+  }
+  .closing .signature {
+    font-size: 1.5rem;
+    color: var(--ink-faint);
+  }
+  .closing .signature strong {
+    display: block;
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  footer.foot {
+    padding: 3.8vh 7vw 6vh;
+    background: var(--paper);
+    color: var(--ink-faint);
+    font-size: 0.94rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  @media (max-width: 860px) {
+    .scrolly { flex-direction: column; }
+    .steps, .visual { width: 100%; }
+    .visual { position: sticky; top: 0; height: 46vh; padding: 3vh 6vw; }
+    .visual-frame { max-width: 420px; }
+    .steps { padding: 4vh 6vw; }
+    .rail { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step, .frame, .scroll-cue::after { transition: none; animation: none; }
+  }
+</style>
+
+<!-- ============================================================ -->
+<!-- HERO -->
+<!-- ============================================================ -->
+<section class="hero">
+  <h1>Policy and Evidence <em>Translation</em></h1>
+  <p class="hero-sub">Como comunicar modelos complexos para quem decide — e por que estar tecnicamente
+  certo raramente é suficiente para mudar uma decisão.</p>
+  <div class="hero-meta">
+    <div><strong>João Ricardo Costa Filho</strong><br>joaocostafilho.com</div>
+  </div>
+  <div class="scroll-cue">role para começar</div>
+</section>
+
+<!-- progress rail -->
+<div class="rail" id="rail" aria-hidden="true"></div>
+
+<!-- ============================================================ -->
+<!-- ATO I — ABERTURA -->
+<!-- ============================================================ -->
+<section class="act">
+  <h2>Uma pergunta para começar</h2>
+  <p>Um modelo tecnicamente correto e, mesmo assim, nada muda. Por quê?</p>
+</section>
+
+<section class="scrolly" data-group="abertura">
+  <div class="steps">
+
+    <div class="step" data-frame="a1">
+      <div class="step-inner">
+        <span class="step-index">01</span>
+        <h3>O resultado certo, a decisão que não muda</h3>
+        <p>Você chega à resposta tecnicamente certa. O modelo está bem especificado, a estimação é robusta,
+        os resultados são sólidos — e, mesmo assim, essa evidência não muda nenhuma decisão.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="a2">
+      <div class="step-inner">
+        <span class="step-index">02</span>
+        <h3>O problema não é (só) a qualidade da evidência</h3>
+        <p>Estar certo tecnicamente é necessário, mas não é suficiente. Entre produzir conhecimento e informar
+        uma decisão existe uma etapa que costuma ser ignorada por quem pesquisa: traduzir a evidência para
+        quem vai usá-la.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="visual">
+    <div class="visual-frame">
+
+      <div class="frame diagram" data-id="a1" style="align-items:center;text-align:center">
+        <p class="quote-big">Por quê?</p>
+      </div>
+
+      <div class="frame diagram" data-id="a2">
+        <p class="quote-big">Produzir conhecimento não é o mesmo que <span class="accent">traduzir</span> evidência.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ATO II — MOLDURA CONCEITUAL -->
+<!-- ============================================================ -->
+<section class="act">
+  <h2>Moldura conceitual</h2>
+  <p>O que separa pesquisa da ação.</p>
+</section>
+
+<section class="scrolly" data-group="moldura">
+  <div class="steps">
+
+    <div class="step" data-frame="b1">
+      <div class="step-inner">
+        <span class="step-index">01</span>
+        <h3>Pesquisa vs. evidência para política</h3>
+        <p>Ciência é método. Vale para a academia e para o setor privado. Mas o resultado dela nem sempre se
+        torna acionável para quem decide, no tempo e na linguagem em que a decisão acontece. Nem toda
+        pesquisa boa vira evidência útil.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="b3">
+      <div class="step-inner">
+        <span class="step-index">02</span>
+        <h3>Três formas de uso da evidência</h3>
+        <p>Nutley, Walter e Davies propõem uma tipologia para o que acontece com a evidência depois que ela
+        sai da mesa de quem pesquisa: uso <strong>instrumental</strong>, quando muda diretamente uma decisão;
+        uso <strong>conceitual</strong>, quando muda como o problema é entendido; e uso <strong>simbólico</strong>,
+        quando é citada para justificar uma decisão já tomada por outros motivos.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="b4">
+      <div class="step-inner">
+        <span class="step-index">03</span>
+        <h3>Por que isso importa para quem trabalha com modelos</h3>
+        <p>Reconhecer esses três tipos de uso ajuda a calibrar expectativas: nem toda apresentação vai gerar
+        uma decisão instrumental imediata. Mas, em qualquer um dos três casos, a evidência só cumpre algum
+        papel se for compreendida por quem a recebe — e é exatamente aí que modelos matemáticos complexos
+        criam um obstáculo particular.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="visual">
+    <div class="visual-frame">
+
+      <div class="frame diagram" data-id="b1">
+        <dl class="deflist">
+          <div class="d"><dt>Pesquisa</dt><dd>Rigor técnico</dd></div>
+          <div class="d"><dt>Tradução de evidências</dt><dd>Conhecimento acionável: contexto, linguagem clara, exemplos e simplificação.</dd></div>
+        </dl>
+      </div>
+
+      <div class="frame diagram" data-id="b3">
+        <dl class="deflist">
+          <div class="d"><dt>Uso instrumental</dt><dd>A evidência muda diretamente uma decisão</dd></div>
+          <div class="d"><dt>Uso conceitual</dt><dd>A evidência muda como o problema é entendido</dd></div>
+          <div class="d"><dt>Uso simbólico</dt><dd>A evidência justifica uma decisão já tomada por outros motivos</dd></div>
+        </dl>
+        <p class="quote-src">Nutley, Walter &amp; Davies (2007), <em>Using Evidence: How Research Can Inform Public Services</em></p>
+      </div>
+
+      <div class="frame diagram" data-id="b4">
+        <p class="quote-big">A evidência só cumpre seu papel se for <span class="accent">compreendida</span>.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ATO III — O GARGALO -->
+<!-- ============================================================ -->
+<section class="act">
+  <h2>O gargalo</h2>
+  <p>Por que modelos com premissas, mecanismos e incerteza embutida são um desafio de comunicação à parte.</p>
+</section>
+
+<section class="scrolly" data-group="gargalo">
+  <div class="steps">
+
+    <div class="step" data-frame="c1">
+      <div class="step-inner">
+        <span class="step-index">01</span>
+        <h3>Por que modelos complexos são um caso à parte</h3>
+        <p>Um achado simples — uma média, uma correlação — já é difícil de comunicar. Um modelo, com
+        premissas, mecanismos e incerteza embutida, é mais difícil ainda: a simplificação necessária para
+        comunicar tende a apagar exatamente o que dá rigor ao resultado.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="c2">
+      <div class="step-inner">
+        <span class="step-index">02</span>
+        <h3>As três barreiras de Fischhoff</h3>
+        <p>Baruch Fischhoff identifica três razões pelas quais especialistas comunicam mal a incerteza dos
+        seus modelos: relutância em expressar incerteza, subestimar a audiência, e medo institucional de
+        reconhecer publicamente os limites do próprio modelo.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="c4">
+      <div class="step-inner">
+        <span class="step-index">03</span>
+        <h3>Uma heurística prática</h3>
+        <p>Diante de qualquer modelo complexo, três perguntas que o público não especializado precisa ver
+        respondidas. Se a apresentação não responde às três, o modelo pode estar correto — e mesmo assim
+        não vai se traduzir em nada.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="visual">
+    <div class="visual-frame">
+
+      <div class="frame diagram" data-id="c1">
+        <p class="quote-big">A simplificação necessária apaga o que dá <span class="accent">rigor</span> ao resultado.</p>
+      </div>
+
+      <div class="frame diagram" data-id="c2">
+        <dl class="deflist">
+          <div class="d"><dt>01 · Relutância</dt><dd>Expressar incerteza é percebido como imprecisão</dd></div>
+          <div class="d"><dt>02 · Subestimação</dt><dd>Esperar ser mal compreendido leva a simplificar demais ou de menos</dd></div>
+          <div class="d"><dt>03 · Medo institucional</dt><dd>Receio de ser penalizado por reconhecer os limites do modelo</dd></div>
+        </dl>
+        <p class="quote-src">Fischhoff e Davis (2013), <em>Communicating scientific uncertainty</em></p>
+      </div>
+
+      <div class="frame diagram" data-id="c4">
+        <dl class="deflist">
+          <div class="d"><dt>01</dt><dd>O que isso significa em termos concretos?</dd></div>
+          <div class="d"><dt>02</dt><dd>Quão confiável é essa conclusão?</dd></div>
+          <div class="d"><dt>03</dt><dd>O que eu faria de diferente sabendo disso?</dd></div>
+        </dl>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ATO IV — DOIS CASOS -->
+<!-- ============================================================ -->
+<section class="act">
+  <h2>Dois casos</h2>
+  <p>Dois trabalhos próprios que passaram pelo mesmo desafio: um modelo tecnicamente sofisticado, um
+  público que não precisa entender a matemática por trás.</p>
+</section>
+
+<section class="scrolly" data-group="casos">
+  <div class="steps">
+
+    <div class="step" data-frame="d1">
+      <div class="step-inner">
+        <span class="step-index">01</span>
+        <h3>De volta a essa lente</h3>
+        <p>Os dois casos a seguir são trabalhos próprios que passaram por esse mesmo desafio: um modelo
+        tecnicamente sofisticado precisando chegar a um público que não vai — nem precisa — entender a
+        matemática por trás.</p>
+      </div>
+    </div>
+
+    <div class="step" data-frame="d2">
+      <div class="step-inner">
+        <span class="step-index">02</span>
+        <h3>Impacto da Inteligência Artificial na Economia Brasileira</h3>
+      </div>
+    </div>
+
+    <div class="step" data-frame="d3">
+      <div class="step-inner">
+        <span class="step-index">03</span>
+        <h3>Caso 2 — Instituições financeiras digitais</h3>
+        <p>Modelo DSGE estimado para a economia brasileira e utilizado em um exercício contrafactual.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="visual">
+    <div class="visual-frame">
+
+      <div class="frame diagram" data-id="d1">
+        <p class="quote-big">Mesmo desafio, <span class="accent">dois</span> contextos diferentes.</p>
+      </div>
+
+      <div class="frame diagram" data-id="d2" style="align-items:center;text-align:center;justify-content:center">
+        <p class="quote-big" style="max-width:26ch">Um modelo de equilíbrio geral, calibrado para a economia brasileira e disciplinado pela matriz insumo-produto.</p>
+      </div>
+
+      <div class="frame diagram" data-id="d3" style="align-items:center;text-align:center;justify-content:center">
+        <p class="quote-big" style="max-width:26ch">O impacto das instituições financeiras digitais na economia brasileira</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CLOSING -->
+<!-- ============================================================ -->
+<section class="closing">
+  <div class="thanks">Obrigado!</div>
+  <p class="thanks-sub">Perguntas?</p>
+  <img class="qr" src="img/qrcode.png" alt="QR code para linkedin.com/in/costafilhojoao">
+  <div class="signature"><strong>João Ricardo Costa Filho</strong>joaocostafilho.com</div>
+</section>
+
+<footer class="foot">
+  Referências: Cairney (2016); Nutley, Walter &amp; Davies (2007); Fischhoff (2013); Fischhoff &amp; Davis (2014).
+</footer>
+
+<script>
+(function () {
+  var groups = document.querySelectorAll('.scrolly');
+
+  groups.forEach(function (group) {
+    var steps = group.querySelectorAll('.step');
+    var frames = group.querySelectorAll('.frame');
+
+    function activate(id) {
+      steps.forEach(function (s) {
+        s.classList.toggle('is-active', s.dataset.frame === id);
+      });
+      frames.forEach(function (f) {
+        f.classList.toggle('is-visible', f.dataset.id === id);
+      });
+    }
+
+    // start with first frame visible
+    if (steps.length) activate(steps[0].dataset.frame);
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          activate(entry.target.dataset.frame);
+        }
+      });
+    }, { root: null, rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+
+    steps.forEach(function (s) { io.observe(s); });
+  });
+
+  // progress rail: one dot per act
+  var acts = document.querySelectorAll('.act');
+  var rail = document.getElementById('rail');
+  acts.forEach(function (a, i) {
+    var dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.dataset.idx = i;
+    rail.appendChild(dot);
+  });
+  var dots = rail.querySelectorAll('.dot');
+
+  var actIO = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        var idx = Array.prototype.indexOf.call(acts, entry.target);
+        dots.forEach(function (d, i) { d.classList.toggle('is-active', i === idx); });
+      }
+    });
+  }, { root: null, rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+  acts.forEach(function (a) { actIO.observe(a); });
+})();
+</script>
